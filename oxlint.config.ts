@@ -7,6 +7,7 @@ export default defineConfig({
     ignorePatterns: core.ignorePatterns,
     rules: {
         "func-style": "off",
+        "max-classes-per-file": "off",
         "no-abusive-eslint-disable": "off",
         "no-barrel-file": "off",
         "no-empty-interface": "off",

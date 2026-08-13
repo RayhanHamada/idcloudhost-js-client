@@ -1,17 +1,15 @@
 {
-    "name": "idcloudhost-api-sdk",
+    "name": "idcloudhost-js-client",
     "version": "0.0.0",
-    "description": "A starter for creating a TypeScript package.",
-    "homepage": "https://github.com/author/library#readme",
-    "bugs": {
-        "url": "https://github.com/author/library/issues"
-    },
+    "description": "TypeScript SDK for the IDCloudHost API.",
+    "keywords": [
+        "api",
+        "cloud",
+        "idcloudhost",
+        "sdk",
+        "vm"
+    ],
     "license": "MIT",
-    "author": "Author Name <author.name@mail.com>",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/author/library.git"
-    },
     "files": [
         "dist"
     ],
@@ -26,7 +24,7 @@
         "test": "vitest",
         "typecheck": "tsc --noEmit",
         "release": "bumpp",
-        "prepublishOnly": "pnpm run build",
+        "prepublishOnly": "bun run build",
         "check": "ultracite check",
         "fix": "ultracite fix"
     },
