@@ -9,7 +9,15 @@
         "sdk",
         "vm"
     ],
+    "homepage": "https://github.com/RayhanHamada/idcloudhost-js-client#readme",
+    "bugs": {
+        "url": "https://github.com/RayhanHamada/idcloudhost-js-client/issues"
+    },
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/RayhanHamada/idcloudhost-js-client.git"
+    },
     "files": [
         "dist"
     ],
@@ -21,7 +29,7 @@
     "scripts": {
         "build": "tsdown",
         "dev": "tsdown --watch",
-        "test": "vitest run",
+        "test": "vitest",
         "typecheck": "tsc --noEmit",
         "release": "bumpp",
         "prepublishOnly": "bun run build",
@@ -37,5 +45,10 @@
         "typescript": "6.0.3",
         "ultracite": "7.10.3",
         "vitest": "^4.1.10"
+    },
+    "bumpp": {
+        "commit": "chore: release v%s",
+        "tag": "v%s",
+        "push": true
     }
 }
