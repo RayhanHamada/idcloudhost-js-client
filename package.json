@@ -41,6 +41,7 @@
         "bumpp": "^11.1.0",
         "oxfmt": "^0.63.0",
         "oxlint": "^1.78.0",
+        "skills": "^1.5.22",
         "tsdown": "^0.22.5",
         "typescript": "6.0.3",
         "ultracite": "7.10.3",

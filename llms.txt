@@ -1,0 +1,464 @@
+# idcloudhost-js-client
+
+> TypeScript SDK for the IDCloudHost API (https://api.idcloudhost.com). Zero runtime dependencies — uses the platform's native `fetch`. Unofficial, AI-generated client; not affiliated with IDCloudHost.
+
+Key links:
+
+- [GitHub repository](https://github.com/RayhanHamada/idcloudhost-js-client)
+- [Official IDCloudHost API docs](https://api.idcloudhost.com/)
+- [Package on npm](https://www.npmjs.com/package/idcloudhost-js-client)
+
+## Installation
+
+```sh
+# bun
+bun add idcloudhost-js-client
+
+# npm
+npm install idcloudhost-js-client
+
+# pnpm
+pnpm add idcloudhost-js-client
+
+# yarn
+yarn add idcloudhost-js-client
+```
+
+## Quickstart
+
+```ts
+import { IdCloudHostClient, waitForVmStatus } from "idcloudhost-js-client";
+
+const client = new IdCloudHostClient({ apiKey: process.env.IDCLOUDHOST_API_KEY });
+
+// Locations
+const locations = await client.config.listLocations();
+
+// List VMs in the default location
+const vms = await client.vm.list();
+
+// Create a VM
+const vm = await client.vm.create({
+    name: "web-server",
+    osName: "ubuntu",
+    osVersion: "24.04",
+    vcpu: 2,
+    ram: 2048,
+    disks: 40,
+    username: "root",
+    password: "Secret1234",
+});
+
+// Stop the VM and wait for the operation to finish
+await client.vm.stop(vm.uuid, { force: true });
+await waitForVmStatus(client.vm, vm.uuid, "stopped");
+
+// Location-scoped operations
+const jkt = client.withLocation("jkt01");
+const jktVms = await jkt.vm.list();
+```
+
+## Authentication
+
+The API key is sent in the `apikey` header of every request:
+
+```ts
+const client = new IdCloudHostClient({ apiKey: "meowmeowmeow" });
+```
+
+## Client options
+
+```ts
+interface IdCloudHostClientOptions {
+    apiKey: string;                    // IDCloudHost API token (required)
+    baseUrl?: string;                  // Defaults to "https://api.idcloudhost.com"
+    location?: string;                 // Location slug, e.g. "jkt01"
+    headers?: Record<string, string>;  // Merged into every request; apikey wins
+}
+```
+
+## Locations
+
+Location-specific resources (VMs, block storage, networks, floating IPs, firewalls, load balancers, billing resources) are addressed through a location slug. By default the API's default location is used. Target a specific location with `withLocation`:
+
+```ts
+const client = new IdCloudHostClient({ apiKey: "..." });
+const bus02 = client.withLocation("bus02");
+
+await bus02.vm.list();  // GET /v1/bus02/user-resource/vm/list
+await client.vm.list(); // GET /v1/user-resource/vm/list
+```
+
+## API coverage
+
+| Namespace | Resources |
+| --- | --- |
+| `client.config` | locations, VM parameters, VM images (plain OS / app catalog), boot images, pricing policy |
+| `client.user` | user info, profile, SSH keys |
+| `client.token` | API token CRUD |
+| `client.vm` | list/get/create/modify/delete, start/stop, change password, reinstall, rebuild, clone, auto backup, host pools, replicas, boot ISO media, attached disks |
+| `client.storage.disks` | block storage disks CRUD, attach/detach |
+| `client.storage.buckets` | S3 buckets CRUD, S3 API info, S3 keys |
+| `client.network.privateNetworks` | private network CRUD, default, rename |
+| `client.network.floatingIps` | floating IP CRUD, assign/unassign |
+| `client.network.firewalls` | firewall CRUD, assign/unassign to VMs |
+| `client.network.loadBalancers` | load balancer CRUD, targets, forwarding rules, billing account |
+| `client.billing` | billing account resources, resource billing configuration |
+| `client.payment` | billing accounts, credit cards, credit, invoices, payments, campaigns |
+| `client.charging` | resource usage |
+| `client.services` | managed service packages, secrets, whitelists |
+
+## VM operations
+
+```ts
+// Create with all options
+const vm = await client.vm.create({
+    name: "db-server",
+    osName: "ubuntu",
+    osVersion: "24.04",
+    disks: 40,             // size of main storage in GB
+    vcpu: 2,
+    ram: 4096,             // RAM in MB
+    username: "root",
+    password: "Secret1234",
+    billingAccountId: 123,
+    designatedPoolUuid: "pool-uuid",
+    networkUuid: "network-uuid",
+    backup: true,          // enable automatic backups
+    publicKeys: ["ssh-ed25519 AAAA..."], // OpenSSH public key lines
+    reservePublicIp: true,
+    sourceUuid: "vm-uuid", // clone source
+    cloudInit: "#cloud-config\n...",
+});
+
+// Get, modify, delete
+const one = await client.vm.get(vm.uuid);
+await client.vm.modify({ uuid: vm.uuid, name: "renamed", vcpu: 4, ram: 8192 });
+await client.vm.delete(vm.uuid);
+
+// Lifecycle
+await client.vm.start(vm.uuid);
+await client.vm.stop(vm.uuid, { force: true }); // graceful ACPI first unless force
+await client.vm.changePassword({ uuid: vm.uuid, username: "root", password: "NewSecret1" });
+await client.vm.reinstall({ uuid: vm.uuid, osName: "ubuntu", osVersion: "22.04" });
+
+// Replicas (snapshots/backups)
+await client.vm.createReplica(vm.uuid);
+const replicas = await client.vm.listReplicas({ uuid: vm.uuid, type: "snapshot" });
+await client.vm.rebuild({ uuid: vm.uuid, replicaUuid: replicas[0].uuid });
+await client.vm.deleteReplica({ replicaUuid: replicas[0].uuid });
+
+// Clone
+await client.vm.clone({ uuid: vm.uuid, name: "db-server-clone" });
+
+// Auto backup toggle and host pools
+await client.vm.toggleAutoBackup(vm.uuid);
+const pools = await client.vm.listHostPools();
+
+// Boot ISO media (one-shot live boot)
+await client.vm.bootIsoMedia({ uuid: vm.uuid, bootImageUuid: "iso-uuid", bootImageRepository: "private" });
+
+// Disks attached to a VM
+const disk = await client.vm.addDisk({ uuid: vm.uuid, sizeGb: 20 });
+await client.vm.modifyDisk({ uuid: vm.uuid, diskUuid: disk.uuid, sizeGb: 40 });
+await client.vm.deleteDisk({ uuid: vm.uuid, storageUuid: disk.uuid });
+```
+
+Deprecated: `vm.releasePublicIp(uuid)` and `vm.reservePublicIp(uuid)` — use `client.network.floatingIps` instead.
+
+## Block storage (location-specific)
+
+```ts
+// Create a disk from an OS base image
+const disk = await client.storage.disks.create({
+    sizeGb: 20,
+    sourceImageType: "OS_BASE",
+    sourceImage: "ubuntu_20.04",
+    displayName: "data-disk",
+    billingAccountId: 123, // required with a global API token
+});
+
+const disks = await client.storage.disks.list({ readOnlyBootable: false });
+const one = await client.storage.disks.get(disk.uuid);
+await client.storage.disks.modify(disk.uuid, { displayName: "renamed" });
+
+// Attach/detach to a VM
+await client.storage.disks.attach({ uuid: vm.uuid, storageUuid: disk.uuid });
+await client.storage.disks.detach({ uuid: vm.uuid, storageUuid: disk.uuid });
+
+await client.storage.disks.delete(disk.uuid); // deletes snapshots too
+```
+
+`DiskSourceImageType` is `"OS_BASE" | "DISK" | "SNAPSHOT" | "EMPTY"`.
+
+## Object storage / S3 (global)
+
+```ts
+const { url } = await client.storage.buckets.getS3Info();
+
+const bucket = await client.storage.buckets.create({ name: "my-bucket" });
+await client.storage.buckets.list({ billingAccountId: 123 });
+await client.storage.buckets.get("my-bucket");
+await client.storage.buckets.modify({ name: "my-bucket", billingAccountId: 456 });
+await client.storage.buckets.delete("my-bucket"); // only empty buckets
+
+// S3 keys
+const keys = await client.storage.buckets.listKeys();
+const all = await client.storage.buckets.generateKey(); // returns all keys
+await client.storage.buckets.deleteKey(keys[0].accessKey);
+```
+
+## Networking (location-specific)
+
+### Private networks
+
+```ts
+const networks = await client.network.privateNetworks.list();
+const net = await client.network.privateNetworks.create({ name: "lan" });
+await client.network.privateNetworks.get(net.uuid);
+await client.network.privateNetworks.rename(net.uuid, { name: "new-lan" });
+await client.network.privateNetworks.setDefault(net.uuid);
+await client.network.privateNetworks.delete(net.uuid); // must be empty and not default
+```
+
+### Floating IPs
+
+```ts
+const ips = await client.network.floatingIps.list({ billingAccountId: 123, vmUuid: vm.uuid });
+const ip = await client.network.floatingIps.create({ billingAccountId: 123, name: "web-ip" });
+await client.network.floatingIps.get(ip.address);
+await client.network.floatingIps.assign(ip.address, {
+    assignedTo: vm.uuid,
+    assignedToResourceType: "virtual_machine", // or "service" | "load_balancer"
+});
+await client.network.floatingIps.unassign(ip.address);
+await client.network.floatingIps.modify(ip.address, { name: "renamed-ip" });
+await client.network.floatingIps.delete(ip.address);
+```
+
+### Firewalls
+
+```ts
+const fw = await client.network.firewalls.create({
+    displayName: "web-firewall",
+    rules: [
+        {
+            protocol: "tcp",
+            direction: "inbound",
+            port_start: 443,
+            port_end: 443,
+            endpoint_spec_type: "ip_prefixes",
+            endpoint_spec: ["0.0.0.0/0"],
+        },
+        {
+            protocol: "tcp",
+            direction: "inbound",
+            port_start: 22,
+            port_end: null, // equal to port_start
+            endpoint_spec_type: "any",
+        },
+    ],
+});
+
+await client.network.firewalls.assignVm(fw.uuid, { vmUuid: vm.uuid });
+await client.network.firewalls.unassignVm(fw.uuid, { vmUuid: vm.uuid });
+await client.network.firewalls.update(fw.uuid, { description: "updated" });
+await client.network.firewalls.delete(fw.uuid);
+```
+
+### Load balancers
+
+```ts
+const lb = await client.network.loadBalancers.create({
+    displayName: "web-lb",
+    networkUuid: net.uuid,
+    reservePublicIp: true,
+    rules: [{ sourcePort: 443, targetPort: 8443 }],
+    targets: [{ targetUuid: vm.uuid, targetType: "vm" }],
+});
+
+await client.network.loadBalancers.addTarget(lb.uuid, { targetUuid: vm2.uuid, targetType: "vm" });
+await client.network.loadBalancers.removeTarget(lb.uuid, vm2.uuid);
+const rule = await client.network.loadBalancers.addForwardingRule(lb.uuid, { sourcePort: 80, targetPort: 8080 });
+await client.network.loadBalancers.removeForwardingRule(lb.uuid, rule.uuid);
+await client.network.loadBalancers.setBillingAccount(lb.uuid, { billingAccountId: 456 });
+await client.network.loadBalancers.rename(lb.uuid, { displayName: "renamed-lb" });
+await client.network.loadBalancers.delete(lb.uuid);
+```
+
+## Config (global)
+
+```ts
+const locations = await client.config.listLocations();   // GET /v1/config/locations
+const params = await client.config.getVmParameters();    // GET /v1/api/parameters/vm
+const images = await client.config.listVmImages();       // GET /v1/config/vm_images
+const osImages = await client.config.listPlainOsImages();
+const appImages = await client.config.listAppCatalogImages();
+const bootIsos = await client.config.listBootImages();
+const pricing = await client.config.getPricingPolicy();
+```
+
+## User and tokens (global)
+
+```ts
+const me = await client.user.get();
+await client.user.updateProfile({ firstName: "Ada", lastName: "Lovelace" });
+
+const key = await client.user.createSshKey({ name: "laptop", publicKey: "ssh-ed25519 AAAA..." });
+await client.user.renameSshKey(key.uuid, { name: "work-laptop" });
+await client.user.deleteSshKey(key.uuid);
+
+const tokens = await client.token.list();
+await client.token.create({ description: "ci-token", restricted: true, billingAccountId: 123 });
+await client.token.update({ tokenId: 1, description: "updated" });
+await client.token.delete({ tokenId: 1 });
+```
+
+## Billing, payment, charging
+
+```ts
+// Billing (location-specific)
+const resources = await client.billing.listResources({ id: 123, resourceType: "vm" });
+await client.billing.setResourceBilling({ billingAccountId: 123, uuid: vm.uuid });
+
+// Payment (global)
+const accounts = await client.payment.listBillingAccounts({ showShadow: false });
+const account = await client.payment.getBillingAccount({ billingAccountId: 123 });
+await client.payment.getUnpaidAmount({ billingAccountId: 123 });
+await client.payment.setDefaultBillingAccount({ billingAccountId: 123 });
+await client.payment.updateBillingAccount({
+    billingAccountId: 123,
+    account: { city: "Jakarta", ... }, // all fields must be re-passed
+});
+await client.payment.configureRecurringPayment(123, {
+    isRecurringPaymentEnabled: true,
+    recurringPaymentAmount: 100,
+    recurringPaymentThreshold: 50,
+});
+
+// Cards
+const cards = await client.payment.listCards({ billingAccountId: 123 });
+await client.payment.addCard({ billingAccountId: 123, token: "processor-token" });
+await client.payment.setCardPrimary({ paymentObjectId: 1 });
+await client.payment.removeCard({ paymentObjectId: 1 });
+
+// Credit and invoices
+await client.payment.buyCredit({ billingAccountId: 123, paymentObjectId: 1, amount: 500 });
+const invoices = await client.payment.listInvoices({ billingAccountId: 123 }); // status: 5=unpaid, 10=paid
+await client.payment.payInvoice({ invoiceId: invoices[0].id });
+await client.payment.payAll({ billingAccountId: 123 });
+await client.payment.payAmount({ billingAccountId: 123, amount: 250 });
+await client.payment.hasActiveCampaigns();
+
+// Charging (global)
+const usage = await client.charging.getUsage({ billingAccountId: 123 });
+```
+
+## Managed services (global CRUD, location-specific whitelists)
+
+```ts
+const svc = await client.services.create({
+    billingAccountId: 123,
+    service: "postgresql", // e.g. postgresql, mariadb
+    version: "14",
+    displayName: "my-db",
+    vmCpu: 1,
+    vmRam: 1024,
+    vmDiskGb: 20,
+    packageParameters: JSON.stringify({ location: "jkt01" }),
+    isMultiNode: false,
+});
+
+const secrets = await client.services.getSecrets(svc.uuid); // e.g. DB passwords
+await client.services.addWhitelistEntry(svc.uuid, { ipAddress: "203.0.113.10" });
+const whitelist = await client.services.listWhitelist(svc.uuid);
+await client.services.removeWhitelistEntry(svc.uuid, { ipAddress: "203.0.113.10" });
+await client.services.update(svc.uuid, { displayName: "renamed-db" });
+await client.services.delete(svc.uuid);
+```
+
+## Errors
+
+Failed requests throw an `IdCloudHostError` with the HTTP status, the parsed body and the API's `errors` object:
+
+```ts
+import { IdCloudHostError } from "idcloudhost-js-client";
+
+try {
+    await client.vm.get("nope");
+} catch (error) {
+    if (error instanceof IdCloudHostError) {
+        console.error(error.status, error.errors); // e.g. 404, { uuid: "VM not found" }
+    }
+}
+```
+
+The API reports failures in the body as `{"errors": {...}}`; the SDK extracts that object and uses the first message as the `Error` message.
+
+## Waiting for async operations
+
+VM operations like start, stop and reinstall are asynchronous. Poll with `waitFor` / `waitForVmStatus`:
+
+```ts
+import { waitFor, waitForVmStatus, WaitTimeoutError } from "idcloudhost-js-client";
+
+await client.vm.start(vm.uuid);
+const running = await waitForVmStatus(client.vm, vm.uuid, "running", {
+    timeoutMs: 300_000, // default 5 minutes
+    intervalMs: 5_000,  // default 5 seconds
+});
+
+// Generic polling
+const disk = await waitFor(
+    () => client.storage.disks.get(diskUuid),
+    (result) => result.status === "Active"
+);
+
+// Throws WaitTimeoutError if the condition is not met in time
+try {
+    await waitForVmStatus(client.vm, vm.uuid, "stopped", { timeoutMs: 10_000 });
+} catch (error) {
+    if (error instanceof WaitTimeoutError) {
+        console.error("VM did not stop in time");
+    }
+}
+```
+
+## Raw requests
+
+Resource methods are thin wrappers around the client's `request` method. Use it for endpoints the SDK does not cover yet:
+
+```ts
+// client.request<T>(method, path, options)
+// path is relative to /v1[/{location}], without a leading slash
+
+const result = await client.request<{ uuid: string }>("POST", "user-resource/vm", {
+    form: { name: "x", vcpu: 1, ram: 1024 },  // application/x-www-form-urlencoded
+});
+
+const data = await client.request("PATCH", "network/network/uuid", {
+    json: { name: "new-name" },               // application/json
+});
+
+const list = await client.request("GET", "user-resource/vm/list", {
+    query: { page: 2 },
+});
+```
+
+`FormValue[]` arrays are repeated as multiple form fields.
+
+## Development
+
+```sh
+bun install
+bun test          # vitest
+bun run typecheck # tsc --noEmit
+bun run check     # ultracite (oxlint + oxfmt check)
+bun run build     # tsdown
+```
+
+The package ships ESM only (`"type": "module"`, `dist/index.mjs`), TypeScript 6, no runtime dependencies. Releases are tagged via bumpp (`bun run release`) and published through the GitHub release workflow.
+
+## Contributing
+
+Contributions are welcome. This client is AI-generated and not all operations have been verified against a production account, so reports from real-world usage are especially valuable. Open an issue or PR on [GitHub](https://github.com/RayhanHamada/idcloudhost-js-client), and include the relevant endpoint docs or a sample request/response when reporting API mismatches.
