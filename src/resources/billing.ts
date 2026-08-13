@@ -1,4 +1,4 @@
-import type { IdCloudHostClient } from "../client";
+import { BaseResource } from "./base";
 import type { VirtualMachine } from "./vm";
 
 export interface ListBillingResourcesParams {
@@ -18,13 +18,7 @@ export interface SetResourceBillingParams {
 /**
  * Billing account resource associations. All endpoints are location-specific.
  */
-export class BillingResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class BillingResource extends BaseResource {
     /** Lists all resources actively associated with a billing account. */
     listResources(params: ListBillingResourcesParams): Promise<VirtualMachine[]> {
         return this.client.request<VirtualMachine[]>("GET", "user-resource/billing_resources", {

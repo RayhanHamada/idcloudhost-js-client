@@ -1,4 +1,6 @@
 import type { IdCloudHostClient } from "../client";
+import type { SuccessResponse } from "../types";
+import { BaseResource } from "./base";
 import type { StorageReplica } from "./vm";
 
 export type DiskSourceImageType = "OS_BASE" | "DISK" | "SNAPSHOT" | "EMPTY";
@@ -101,10 +103,6 @@ export interface S3Key {
     userId: string;
 }
 
-export interface SuccessResponse {
-    success: boolean;
-}
-
 /**
  * Block storage (location-specific) and object storage (global) endpoints.
  */
@@ -121,13 +119,7 @@ export class StorageResource {
 /**
  * Block storage disks. All endpoints are location-specific.
  */
-export class DiskResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class DiskResource extends BaseResource {
     /**
      * Creates a new disk. It can be empty or a copy of an OS base image, an
      * existing disk or a snapshot.
@@ -190,13 +182,7 @@ export class DiskResource {
 /**
  * S3 object storage buckets and keys. These endpoints are not location-specific.
  */
-export class BucketResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class BucketResource extends BaseResource {
     /** Returns the S3 API URL. */
     getS3Info(): Promise<S3Info> {
         return this.client.request<S3Info>("GET", "storage/api/s3");

@@ -1,4 +1,4 @@
-import type { IdCloudHostClient } from "../client";
+import { BaseResource } from "./base";
 
 export interface UserInfo {
     cookie_id: string;
@@ -50,13 +50,7 @@ export interface RenameSshKeyParams {
 /**
  * User profile and SSH key management.
  */
-export class UserResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class UserResource extends BaseResource {
     /** Returns the authenticated user's data. */
     get(): Promise<UserInfo> {
         return this.client.request<UserInfo>("GET", "user-resource/user");

@@ -1,4 +1,5 @@
 import type { IdCloudHostClient } from "../client";
+import { BaseResource } from "./base";
 
 export interface PrivateNetwork {
     vlan_id: number;
@@ -174,13 +175,7 @@ export class NetworkResource {
 /**
  * Private networks. All endpoints are location-specific.
  */
-export class PrivateNetworkResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class PrivateNetworkResource extends BaseResource {
     /** Lists the user's networks with their resources. */
     list(): Promise<PrivateNetwork[]> {
         return this.client.request<PrivateNetwork[]>("GET", "network/networks");
@@ -222,13 +217,7 @@ export class PrivateNetworkResource {
 /**
  * Floating IP addresses. All endpoints are location-specific.
  */
-export class FloatingIpResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class FloatingIpResource extends BaseResource {
     /** Lists floating IPs, optionally filtered by billing account or VM. */
     list(params: ListFloatingIpsParams = {}): Promise<FloatingIp[]> {
         return this.client.request<FloatingIp[]>("GET", "network/ip_addresses", {
@@ -302,13 +291,7 @@ export class FloatingIpResource {
 /**
  * Firewalls. All endpoints are location-specific.
  */
-export class FirewallResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class FirewallResource extends BaseResource {
     /** Lists the current user's firewalls. */
     list(): Promise<Firewall[]> {
         return this.client.request<Firewall[]>("GET", "network/firewalls");
@@ -361,13 +344,7 @@ export class FirewallResource {
 /**
  * Network load balancers. All endpoints are location-specific.
  */
-export class LoadBalancerResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class LoadBalancerResource extends BaseResource {
     /** Lists the load balancers owned by the user. */
     list(): Promise<LoadBalancer[]> {
         return this.client.request<LoadBalancer[]>("GET", "network/load_balancers");

@@ -1,4 +1,6 @@
-import type { FormValue, IdCloudHostClient } from "../client";
+import type { FormValue } from "../client";
+import type { SuccessResponse } from "../types";
+import { BaseResource } from "./base";
 
 export interface EligiblePromotion {
     credit_type: string;
@@ -176,20 +178,10 @@ export interface ConfigureRecurringPaymentParams {
     recurringPaymentThreshold: number;
 }
 
-export interface SuccessResponse {
-    success: boolean;
-}
-
 /**
  * Payment endpoints: billing accounts, credit cards, credit and invoices.
  */
-export class PaymentResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class PaymentResource extends BaseResource {
     /** Lists the billing accounts attached to the user. */
     listBillingAccounts(params: ListBillingAccountsParams = {}): Promise<BillingAccount[]> {
         return this.client.request<BillingAccount[]>("GET", "payment/billing_account/list", {

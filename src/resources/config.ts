@@ -1,4 +1,4 @@
-import type { IdCloudHostClient } from "../client";
+import { BaseResource } from "./base";
 
 export interface Location {
     display_name: string;
@@ -75,13 +75,7 @@ export interface PricingPolicy {
 /**
  * Global configuration endpoints: locations, VM parameters, images and pricing.
  */
-export class ConfigResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class ConfigResource extends BaseResource {
     /** Lists all available locations (data centres). */
     listLocations(): Promise<Location[]> {
         return this.client.request<Location[]>("GET", "config/locations");

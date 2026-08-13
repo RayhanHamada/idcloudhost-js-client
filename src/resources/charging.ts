@@ -1,4 +1,4 @@
-import type { IdCloudHostClient } from "../client";
+import { BaseResource } from "./base";
 
 export interface UsageConfiguration {
     cpus: number;
@@ -28,13 +28,7 @@ export interface GetUsageParams {
 /**
  * Resource usage and charging data.
  */
-export class ChargingResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class ChargingResource extends BaseResource {
     /** Returns resource usage, prices and costs for the current month. */
     getUsage(params: GetUsageParams): Promise<ResourceUsage[]> {
         return this.client.request<ResourceUsage[]>("GET", "charging/usage", {

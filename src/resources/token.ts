@@ -1,4 +1,4 @@
-import type { IdCloudHostClient } from "../client";
+import { BaseResource } from "./base";
 
 export interface ApiToken {
     billing_account_id: number;
@@ -33,13 +33,7 @@ export interface DeleteTokenParams {
 /**
  * API token management.
  */
-export class TokenResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class TokenResource extends BaseResource {
     /** Lists the user's API tokens. */
     list(): Promise<ApiToken[]> {
         return this.client.request<ApiToken[]>("GET", "user-resource/token/list");

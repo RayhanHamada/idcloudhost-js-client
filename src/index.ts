@@ -8,6 +8,7 @@ export {
     type RequestOptions,
 } from "./client";
 export { IdCloudHostError } from "./errors";
+export type { SuccessResponse } from "./types";
 export {
     WaitTimeoutError,
     waitFor,
@@ -61,7 +62,6 @@ export {
     type RebuildVmParams,
     type ReinstallVmParams,
     type StorageReplica,
-    type SuccessResponse,
     type VirtualMachine,
     type VmStatus,
     type VmStorage,

@@ -1,4 +1,4 @@
-import { IdCloudHostError, createErrorMessage, extractErrors } from "./errors";
+import { IdCloudHostError } from "./errors";
 import { BillingResource } from "./resources/billing";
 import { ChargingResource } from "./resources/charging";
 import { ConfigResource } from "./resources/config";
@@ -79,7 +79,7 @@ export class IdCloudHostClient {
         this.apiKey = options.apiKey;
         this.baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/u, "");
         this.location = options.location;
-        this.fetchImpl = options.fetch ?? ((...args) => globalThis.fetch(...args));
+        this.fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
 
         this.config = new ConfigResource(this);
         this.user = new UserResource(this);
@@ -184,4 +184,30 @@ function parseJson(text: string): unknown {
     } catch {
         return text;
     }
+}
+
+function extractErrors(body: unknown): Record<string, unknown> | undefined {
+    if (typeof body === "object" && body !== null && "errors" in body) {
+        const { errors } = body as { errors: unknown };
+        if (typeof errors === "object" && errors !== null && !Array.isArray(errors)) {
+            return errors as Record<string, unknown>;
+        }
+    }
+    return undefined;
+}
+
+function createErrorMessage(status: number, errors?: Record<string, unknown>): string {
+    if (errors !== undefined) {
+        const [first] = Object.values(errors);
+        if (typeof first === "string") {
+            return first;
+        }
+        if (typeof first === "object" && first !== null) {
+            const { msg } = first as { msg?: unknown };
+            if (typeof msg === "string") {
+                return msg;
+            }
+        }
+    }
+    return `Request failed with status ${status}`;
 }

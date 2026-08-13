@@ -1,4 +1,5 @@
-import type { IdCloudHostClient } from "../client";
+import type { SuccessResponse } from "../types";
+import { BaseResource } from "./base";
 
 export type VmStatus = "running" | "stopped" | "provisioning" | string;
 
@@ -166,21 +167,11 @@ export interface DeleteDiskParams {
     storageUuid: string;
 }
 
-export interface SuccessResponse {
-    success: boolean;
-}
-
 /**
  * Virtual machine lifecycle: create, modify, start/stop, reinstall, replicas,
  * disks and boot media. All endpoints are location-specific.
  */
-export class VmResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class VmResource extends BaseResource {
     /** Lists virtual machines in the configured location. */
     list(): Promise<VirtualMachine[]> {
         return this.client.request<VirtualMachine[]>("GET", "user-resource/vm/list");

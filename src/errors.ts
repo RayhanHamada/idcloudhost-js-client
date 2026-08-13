@@ -23,29 +23,3 @@ export class IdCloudHostError extends Error {
         this.errors = options.errors;
     }
 }
-
-export function extractErrors(body: unknown): Record<string, unknown> | undefined {
-    if (typeof body === "object" && body !== null && "errors" in body) {
-        const { errors } = body as { errors: unknown };
-        if (typeof errors === "object" && errors !== null && !Array.isArray(errors)) {
-            return errors as Record<string, unknown>;
-        }
-    }
-    return undefined;
-}
-
-export function createErrorMessage(status: number, errors?: Record<string, unknown>): string {
-    if (errors !== undefined) {
-        const [first] = Object.values(errors);
-        if (typeof first === "string") {
-            return first;
-        }
-        if (typeof first === "object" && first !== null) {
-            const { msg } = first as { msg?: unknown };
-            if (typeof msg === "string") {
-                return msg;
-            }
-        }
-    }
-    return `Request failed with status ${status}`;
-}

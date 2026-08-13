@@ -1,4 +1,4 @@
-import type { IdCloudHostClient } from "../client";
+import { BaseResource } from "./base";
 
 export interface ServicePrice {
     priceMultiplier: number;
@@ -71,13 +71,7 @@ export interface UpdateServicePackageParams {
  * Managed services. Package CRUD is global; whitelist endpoints are
  * location-specific.
  */
-export class ServicesResource {
-    private readonly client: IdCloudHostClient;
-
-    constructor(client: IdCloudHostClient) {
-        this.client = client;
-    }
-
+export class ServicesResource extends BaseResource {
     /** Creates a new managed service package. */
     create(params: CreateServicePackageParams): Promise<ServicePackage> {
         return this.client.request<ServicePackage>("POST", "user-resource/service/package", {
