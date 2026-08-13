@@ -2,8 +2,9 @@
   "version": 1,
   "skills": {
     "idcloudhost": {
-      "source": ".",
-      "sourceType": "local",
+      "source": "rayhanhamada/idcloudhost-js-client",
+      "sourceType": "github",
+      "skillPath": "skills/idcloudhost/SKILL.md",
       "computedHash": "1be9eb4eb541977dbb1724a343c6fcaf3cea461e53ed294cdee0d181b3c13ad8"
     },
     "idcloudhost-billing": {
