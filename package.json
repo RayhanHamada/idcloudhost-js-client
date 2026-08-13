@@ -1,6 +1,6 @@
 {
     "name": "idcloudhost-js-client",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "TypeScript SDK for the IDCloudHost API.",
     "keywords": [
         "api",
