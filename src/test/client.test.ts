@@ -110,4 +110,38 @@ describe("IdCloudHostClient", () => {
         const promise = client.payment.payAll({ billingAccountId: 1 });
         await expect(promise).rejects.toThrow("Consumer not allowed to access resource.");
     });
+
+    it("merges default headers into every request", async () => {
+        const { client, requests } = createClient(() => ({ body: {} }), {
+            headers: { "x-request-id": "abc", "x-custom": "yes" },
+        });
+        await client.vm.list();
+        expect(requests[0].headers["x-request-id"]).toBe("abc");
+        expect(requests[0].headers["x-custom"]).toBe("yes");
+    });
+
+    it("keeps the apikey header authoritative over default headers", async () => {
+        const { client, requests } = createClient(() => ({ body: {} }), {
+            headers: { apikey: "spoofed" },
+        });
+        await client.vm.list();
+        expect(requests[0].headers.apikey).toBe("test-key");
+    });
+
+    it("lets request-specific content types override default headers", async () => {
+        const { client, requests } = createClient(() => ({ body: {} }), {
+            headers: { "Content-Type": "text/plain" },
+        });
+        await client.user.createSshKey({ name: "laptop", publicKey: "ssh-ed25519 AAAA" });
+        expect(requests[0].headers["Content-Type"]).toBe("application/json");
+    });
+
+    it("propagates default headers to location-scoped clients", async () => {
+        const { client, requests } = createClient(() => ({ body: {} }), {
+            headers: { "x-request-id": "abc" },
+        });
+        await client.withLocation("jkt01").vm.list();
+        expect(requests[0].path).toBe("/v1/jkt01/user-resource/vm/list");
+        expect(requests[0].headers["x-request-id"]).toBe("abc");
+    });
 });

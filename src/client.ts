@@ -35,8 +35,11 @@ export interface IdCloudHostClientOptions {
      * When omitted, the API default location is used.
      */
     location?: string;
-    /** Custom fetch implementation. Useful for testing or proxying. */
-    fetch?: typeof fetch;
+    /**
+     * Default headers merged into every request. The `apikey` header derived
+     * from {@link IdCloudHostClientOptions.apiKey} takes precedence.
+     */
+    headers?: Record<string, string>;
 }
 
 export const DEFAULT_BASE_URL = "https://api.idcloudhost.com";
@@ -61,6 +64,7 @@ export class IdCloudHostClient {
     readonly apiKey: string;
     readonly baseUrl: string;
     readonly location: string | undefined;
+    readonly headers: Record<string, string>;
 
     readonly config: ConfigResource;
     readonly user: UserResource;
@@ -73,13 +77,11 @@ export class IdCloudHostClient {
     readonly charging: ChargingResource;
     readonly services: ServicesResource;
 
-    private readonly fetchImpl: typeof fetch;
-
     constructor(options: IdCloudHostClientOptions) {
         this.apiKey = options.apiKey;
         this.baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/u, "");
         this.location = options.location;
-        this.fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
+        this.headers = { ...options.headers };
 
         this.config = new ConfigResource(this);
         this.user = new UserResource(this);
@@ -102,7 +104,7 @@ export class IdCloudHostClient {
             apiKey: this.apiKey,
             baseUrl: this.baseUrl,
             location,
-            fetch: this.fetchImpl,
+            headers: this.headers,
         });
     }
 
@@ -114,7 +116,7 @@ export class IdCloudHostClient {
      */
     async request<T>(method: HttpMethod, path: string, options: RequestOptions = {}): Promise<T> {
         const url = this.buildUrl(path, options.query);
-        const headers: Record<string, string> = { apikey: this.apiKey };
+        const headers: Record<string, string> = { ...this.headers, apikey: this.apiKey };
         let body: string | undefined;
 
         if (options.json !== undefined) {
@@ -125,7 +127,7 @@ export class IdCloudHostClient {
             body = encodeForm(options.form);
         }
 
-        const response = await this.fetchImpl(url, { method, headers, body });
+        const response = await globalThis.fetch(url, { method, headers, body });
         return parseResponse<T>(response);
     }
 
