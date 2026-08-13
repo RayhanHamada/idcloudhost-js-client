@@ -1,30 +1,30 @@
 {
-    "version": 1,
-    "skills": {
-        "idcloudhost": {
-            "source": ".",
-            "sourceType": "local",
-            "computedHash": "9bdb877939c603f0e440ee78a9f9380d8e8c287fee015d145bb0fa5ea7b39976"
-        },
-        "idcloudhost-billing": {
-            "source": ".",
-            "sourceType": "local",
-            "computedHash": "fe1e46eba4d53cb186536f8b5915c4a100998120d9e49b6f1011b62939fe58c5"
-        },
-        "idcloudhost-network": {
-            "source": ".",
-            "sourceType": "local",
-            "computedHash": "be7f636b32233a922155426c52522ad618eaa0823d89babf307d11265e4b5f50"
-        },
-        "idcloudhost-storage": {
-            "source": ".",
-            "sourceType": "local",
-            "computedHash": "3cc08e19911f5543cb8d3e647595f9f0f558f750da95aa6e640ba489a468b2f0"
-        },
-        "idcloudhost-vm": {
-            "source": ".",
-            "sourceType": "local",
-            "computedHash": "71575c7157238b056cff5f845f3f976ac630966b7e5b4aa3c67717e730c30151"
-        }
+  "version": 1,
+  "skills": {
+    "idcloudhost": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "1be9eb4eb541977dbb1724a343c6fcaf3cea461e53ed294cdee0d181b3c13ad8"
+    },
+    "idcloudhost-billing": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "f98cea267a056c292772c9e35eedb1a6a3269b95a180a30f3abfe2e5fc3cce4c"
+    },
+    "idcloudhost-network": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "1abedb4ccfff87088c32fc1c972adb5370e4adb4e5f4b49d67570ae25d7a9750"
+    },
+    "idcloudhost-storage": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "48504f68d029bcb0d230d55c26de950d9999ea964b511bfc1fe26a92e428b73e"
+    },
+    "idcloudhost-vm": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "c5ad931e0c79272419782c19b8c8b8bb040273bf0a828a565fcdbcb373609557"
     }
+  }
 }
