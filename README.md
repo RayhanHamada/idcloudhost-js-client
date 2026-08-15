@@ -149,6 +149,22 @@ const disk = await waitFor(
 );
 ```
 
+## Agent skills
+
+This repo ships AI agent skills that teach AI coding agents how to use the SDK correctly. They live under `skills/` and are loaded automatically when an agent works on IDCloudHost code.
+
+| Skill | Covers |
+| --- | --- |
+| `idcloudhost` | Client setup, authentication, locations, error handling, waiting for async VM operations, and choosing the right resource namespace |
+| `idcloudhost-vm` | VM CRUD, start/stop, reinstall/rebuild/clone, replicas, host pools, boot ISO media, attached disks, cloud-init |
+| `idcloudhost-network` | Private networks, floating IPs, firewalls, load balancers |
+| `idcloudhost-storage` | Block storage disks and S3 object storage |
+| `idcloudhost-billing` | Billing accounts, cards, credit, invoices, usage, managed service packages |
+
+```sh
+npx skills add rayhanhamada/idcloudhost-js-client
+```
+
 ## Contributing
 
 Contributions are welcome and appreciated. This client is AI-generated and not all operations have been verified against a production account, so reports from real-world usage are especially valuable.
